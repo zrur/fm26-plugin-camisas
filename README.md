@@ -1,65 +1,108 @@
 # FM26 Custom Kits
 
-BepInEx/Harmony plugin for Football Manager 26 that injects custom kit textures into 3D match rendering and 2D UI screens, replaces abbreviated Brazilian club names with full names, and enables facepacks — all without modifying any game files.
+> Plugin BepInEx/Harmony para Football Manager 26 que injeta camisas customizadas na renderização 3D das partidas e nas telas 2D da UI — sem modificar nenhum arquivo do jogo.
 
-> **Guia completo em português:** https://claude.ai/artifact/XpwnSe9zoaeYd1V1NRYkTv
+**[Guia completo em português →](https://claude.ai/artifact/XpwnSe9zoaeYd1V1NRYkTv)**
 
 ---
 
-## How it works
+## Por que existe
 
-FM26 uses Unity IL2CPP with an addressable asset system. The old `graphics/kits/` folder no longer works. This plugin intercepts the engine's internal rendering methods at runtime:
+O FM26 migrou para Unity IL2CPP com um sistema de addressable assets. A pasta `graphics/kits/` que funcionava nos jogos anteriores **não é mais lida**. Este plugin intercepta os métodos internos da engine em tempo de execução para contornar isso.
 
-- `GraphicsUtils.ResolveKitResourceID` — identifies which team is being set up
-- `KitMaterials.ApplyGenericKitToTextureArray` — intercepts generic kit rendering, replaces with custom PNG via `ApplyLicensedKitWithNumberToTextureArray`
-- `DatabaseObjectImageHelpers.ConvertDynamicReferenceToAddressableID` — replaces 2D kit in UI screens
-- `TextElement.text` setter — replaces abbreviated club names with full names
+## Como funciona
 
-## Requirements
+O plugin usa Harmony para interceptar métodos internos do FM26:
 
-- Football Manager 26 (Steam)
+| Método interceptado | O que faz |
+| --- | --- |
+| `GraphicsUtils.ResolveKitResourceID` | Identifica qual time está sendo renderizado |
+| `KitMaterials.ApplyGenericKitToTextureArray` | Substitui a camisa genérica pelo PNG customizado |
+| `KitMaterials.TryGetLicensedKitTextureResourceID` | Faz o jogo "acreditar" que o time tem camisa licenciada |
+| `DatabaseObjectImageHelpers.ConvertDynamicReferenceToAddressableID` | Substitui a camisa 2D nas telas de UI |
+| `SI.UI.Image.SetImage` | Renderiza o PNG customizado no elemento da UI |
+| `TextElement.text` (setter) | Substitui siglas por nomes completos (ex: VDG → Vasco da Gama) |
+
+## Requisitos
+
+- Football Manager 26 (Steam, Windows ou Linux)
 - [BepInEx 6 Bleeding Edge IL2CPP x64](https://builds.bepinex.dev/projects/bepinex_be)
-- .NET SDK 8+ (to compile from source)
+- .NET SDK 8+ (apenas para compilar do fonte)
 
-## Installation
+## Instalação
 
-1. Install BepInEx 6 IL2CPP in the FM26 folder and run the game once
-2. Download the latest release and extract to `<FM26>/BepInEx/plugins/`
-3. Run the game — the plugin creates the folders on first launch
+**1. Instale o BepInEx 6 IL2CPP** na pasta raiz do FM26 e abra o jogo uma vez para gerar os arquivos de configuração.
+
+**2. Baixe o release** e extraia para `<FM26>/BepInEx/plugins/`.
+
+**3. Abra o jogo.** O plugin cria as pastas automaticamente no primeiro boot:
 
 ```
 <FM26>/BepInEx/plugins/FM26CustomKits/
 ├── FM26CustomKits.dll
-├── nomes.txt        ← club name replacements
-├── kits3d/          ← <ID>_home.png, <ID>_away.png, <ID>_third.png, <ID>_gk.png (1024×1024)
-└── kits2d/          ← <signature>.png (256×256, transparent background)
+├── nomes.txt          ← substituição de nomes de clubes
+├── kits3d/            ← camisas 3D (partida)
+└── kits2d/            ← camisas 2D (telas de UI)
 ```
 
-## Finding team IDs
+## Adicionando camisas
 
-Enable `LogKitRequests = true` in `BepInEx/config/fm26.community.customkits.cfg`, start a match, and check `BepInEx/LogOutput.log`:
+### Camisas 3D (partida)
 
-```
-[Kit] ResolveKitResourceID time=339 uniforme=home recurso=kit3d_339_home
-```
-
-`339` is the team ID. Name your kit file `339_home.png`.
-
-## Name replacements (nomes.txt)
+Coloque PNGs em `kits3d/` com o nome `<ID>_<tipo>.png`:
 
 ```
-# SIGLA=Full name (one per line)
+kits3d/
+├── 339_home.png       ← camisa titular do time 339
+├── 339_away.png       ← camisa visitante
+├── 339_third.png      ← terceiro uniforme
+└── 339_gk.png         ← goleiro
+```
+
+**Dimensões recomendadas:** 1024×1024 px
+
+**Para descobrir o ID do time:** ative `LogKitRequests = true` no arquivo de configuração, entre numa partida com o time e procure no log:
+
+```
+BepInEx/LogOutput.log → [Kit] ResolveKitResourceID time=339 uniforme=home
+```
+
+### Camisas 2D (UI)
+
+A camisa 2D usa uma **assinatura** baseada nas cores do time, não no ID. Para descobrir a assinatura:
+
+1. Ative `LogKitRequests = true`
+2. Abra qualquer tela com a camisa do time (elenco, perfil do clube)
+3. Procure no log: `[Kit2D] assinatura=a1b2c3d4 tipo=Kit2DOutfield`
+4. Salve o PNG como `kits2d/a1b2c3d4.png`
+
+**Dimensões recomendadas:** 256×256 px com fundo transparente
+
+### Substituição de nomes
+
+Edite `nomes.txt` para substituir siglas por nomes completos em toda a UI:
+
+```
+# SIGLA=Nome exibido
 VDG=Vasco da Gama
+BOT=Botafogo de Futebol e Regatas
 ```
 
-## Compiling from source
+## Compilando do fonte
 
 ```bash
 ~/.dotnet/dotnet build -c Release
+# Saída: bin/Release/net6.0/FM26CustomKits.dll
 ```
 
-Output: `bin/Release/net6.0/FM26CustomKits.dll`
+## Compatibilidade com packs existentes
 
-## License
+Packs distribuídos no formato `.fmf` (Brasil Mundiup, FMScout, etc.) são ZIPs renomeados. Para usar:
 
-MIT
+1. Renomeie o `.fmf` para `.zip` e extraia
+2. Localize os PNGs de camisa dentro do arquivo
+3. Renomeie para o formato `<ID>_home.png` e coloque em `kits3d/`
+
+## Licença
+
+MIT — código aberto, use e modifique à vontade.
