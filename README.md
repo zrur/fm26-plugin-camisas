@@ -2,7 +2,7 @@
 
 > Plugin BepInEx/Harmony para Football Manager 26 que injeta camisas customizadas na renderização 3D das partidas e nas telas 2D da UI — sem modificar nenhum arquivo do jogo.
 
-**[Guia completo em português →](https://claude.ai/artifact/XpwnSe9zoaeYd1V1NRYkTv)**
+**[Guia completo em português →](GUIA.md)**
 
 ---
 
