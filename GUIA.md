@@ -300,7 +300,7 @@ O FM26 é dividido em duas partes: a simulação roda no motor nativo `game_plug
 | `GraphicsUtils.ResolveKitResourceID(teamID, kitType)` | Resolve qual recurso de camisa usar para o time | Registra o caminho do PNG customizado em `PendingCustomKit` para uso no próximo patch |
 | `KitMaterials.ApplyGenericKitToTextureArray(kitSetup, …, array, slot, …)` | Desenha a camisa genérica (cor sólida) no slot do `Texture2DArray`; apenas para times sem licença | Intercepta: se existe PNG para este time, chama `ApplyLicensedKitWithNumberToTextureArray` com nossa textura. É o mecanismo principal da camisa 3D em clubes sem licença |
 
-Por que não usar a pasta `graphics/kits` como nos FMs antigos: o FM26 até procura `graphics/pictures/team/<ID>/kits/home` e `.../kit_textures/home`, mas para clubes sem licença ele desenha a camisa genérica direto pelas cores e nunca chega a olhar a pasta. Com o plugin, o clube passa a ser tratado como licenciado.
+A pasta `graphics/kits` continua funcionando para times licenciados no FM26. O problema é que para clubes sem licença (a maioria dos brasileiros), o jogo desenha a camisa genérica direto pelas cores e nunca chega a verificar se existe um arquivo na pasta. Com o plugin, o clube passa a ser tratado como licenciado e o PNG é carregado normalmente.
 
 ---
 

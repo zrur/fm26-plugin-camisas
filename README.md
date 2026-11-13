@@ -8,7 +8,7 @@
 
 ## Por que existe
 
-O FM26 migrou para Unity IL2CPP com um sistema de addressable assets. A pasta `graphics/kits/` que funcionava nos jogos anteriores **não é mais lida**. Este plugin intercepta os métodos internos da engine em tempo de execução para contornar isso.
+A pasta `graphics/kits/` continua funcionando no FM26 — mas só para os times que o jogo já reconhece como licenciados. Para a maioria dos clubes brasileiros (sem licença), o FM26 ignora essa pasta e desenha a camisa pelas cores genéricas, nunca chegando a verificar se existe um PNG lá. Este plugin intercepta os métodos internos da engine para contornar exatamente isso, fazendo o jogo tratar qualquer time como se tivesse camisa licenciada.
 
 Diferente dos megapacks tradicionais (que chegam a vários GB para cobrir todos os clubes do mundo), aqui você coloca **só as camisas dos times que você quer** — cada PNG pesa menos de 1 MB. O plugin carrega apenas o que está na pasta; o resto continua usando as cores genéricas do jogo.
 
