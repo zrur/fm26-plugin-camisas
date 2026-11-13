@@ -70,10 +70,16 @@ kits3d/
 
 **Dimensões recomendadas:** 1024×1024 px
 
-**Para descobrir o ID do time:** ative `LogKitRequests = true` no arquivo de configuração, entre numa partida com o time e procure no log:
+**Para descobrir o ID do time:** entre numa partida com o time. O plugin atualiza automaticamente o arquivo `referencia.txt` na pasta do plugin:
 
 ```
-BepInEx/LogOutput.log → [Kit] ResolveKitResourceID time=339 uniforme=home
+FM26CustomKits/referencia.txt
+
+## CAMISAS 3D
+ID            tipo      status
+------------------------------------------------------
+339           home      sem camisa
+339           away      sem camisa
 ```
 
 ### Camisas 2D (UI)
@@ -81,7 +87,16 @@ BepInEx/LogOutput.log → [Kit] ResolveKitResourceID time=339 uniforme=home
 A camisa 2D usa uma **assinatura** baseada nas cores do time, não no ID. Para descobrir a assinatura:
 
 1. Abra a tela do clube no jogo
-2. Rode `python scripts/assinaturas.py` — detecta o log automaticamente e lista todas as assinaturas
+2. O plugin registra a assinatura automaticamente em `referencia.txt`:
+
+```
+## ASSINATURAS 2D
+assinatura  tipo                             uniforme  status
+------------------------------------------------------------------------
+a3f52b01    frente (tela do clube)           home      sem camisa
+c8e91a44    linha  (tática/escalação)        home      sem camisa
+```
+
 3. Salve o PNG como `kits2d/<assinatura>.png`
 
 **Dimensões recomendadas:** 256×256 px com fundo transparente

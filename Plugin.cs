@@ -24,12 +24,17 @@ public class Plugin : BasePlugin
     internal new static ManualLogSource Log;
     internal static string Kits3dDir;
     internal static string Kits2dDir;
+    internal static string ReferenciaFile;
     internal static ConfigEntry<bool> LogKitRequests;
     internal static readonly Dictionary<string, string> TextReplacements = new();
     internal static System.Text.RegularExpressions.Regex NamePattern;
 
     private static readonly Dictionary<string, Texture2D> TextureCache = new();
     internal static readonly HashSet<string> LoggedKeys = new();
+
+    // referencia.txt: { "339:home" → linha formatada }
+    private static readonly Dictionary<string, string> _refTeams = new();
+    private static readonly Dictionary<string, string> _refSigs  = new();
 
     public override void Load()
     {
@@ -39,6 +44,7 @@ public class Plugin : BasePlugin
         Directory.CreateDirectory(Kits3dDir);
         Kits2dDir = Path.Combine(root, "kits2d");
         Directory.CreateDirectory(Kits2dDir);
+        ReferenciaFile = Path.Combine(root, "referencia.txt");
 
         LogKitRequests = Config.Bind("Debug", "LogKitRequests", true,
             "Registra no log cada time/uniforme pedido, para descobrir o ID dos times.");
@@ -96,6 +102,61 @@ public class Plugin : BasePlugin
         return File.Exists(path) ? path : null;
     }
 
+    internal static void RecordTeam(long teamId, string suffix, string kitPath)
+    {
+        var key    = $"{teamId}:{suffix}";
+        var status = kitPath != null ? $"instalada  ({Path.GetFileName(kitPath)})" : "sem camisa";
+        var line   = $"{teamId,-14}{suffix,-10}{status}";
+        if (_refTeams.TryGetValue(key, out var prev) && prev == line) return;
+        _refTeams[key] = line;
+        WriteReferencia();
+    }
+
+    internal static void RecordSig(string sig, GraphicsUtils.ResourceType tipo, string uniforme, bool hasCamisa)
+    {
+        var label = tipo switch
+        {
+            GraphicsUtils.ResourceType.Kit2DFront    => "frente (tela do clube)   ",
+            GraphicsUtils.ResourceType.Kit2DOutfield => "linha  (tática/escalação)",
+            GraphicsUtils.ResourceType.Kit2DGK       => "goleiro (tática)         ",
+            _ => $"{tipo,-29}",
+        };
+        var status = hasCamisa ? "instalada" : "sem camisa";
+        var line   = $"{sig,-12}{label}  {uniforme,-10}{status}";
+        if (_refSigs.TryGetValue(sig, out var prev) && prev == line) return;
+        _refSigs[sig] = line;
+        WriteReferencia();
+    }
+
+    private static void WriteReferencia()
+    {
+        try
+        {
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine("# FM26 Custom Kits — referência gerada automaticamente");
+            sb.AppendLine("# Atualizado enquanto você joga. Abra a qualquer momento.");
+            sb.AppendLine();
+            sb.AppendLine("## CAMISAS 3D");
+            sb.AppendLine("# Coloque em:  kits3d/<ID>_home.png | _away.png | _third.png | _gk.png");
+            sb.AppendLine($"{"ID",-14}{"tipo",-10}status");
+            sb.AppendLine(new string('-', 54));
+            foreach (var v in _refTeams.Values.OrderBy(x => x))
+                sb.AppendLine(v);
+            sb.AppendLine();
+            sb.AppendLine("## ASSINATURAS 2D");
+            sb.AppendLine("# Coloque em:  kits2d/<assinatura>.png  (256x256, fundo transparente)");
+            sb.AppendLine($"{"assinatura",-12}{"tipo",-31}  {"uniforme",-10}status");
+            sb.AppendLine(new string('-', 72));
+            foreach (var v in _refSigs.Values.OrderBy(x => x))
+                sb.AppendLine(v);
+            File.WriteAllText(ReferenciaFile, sb.ToString());
+        }
+        catch (Exception ex)
+        {
+            Log.LogWarning($"[Ref] Falha ao escrever referencia.txt: {ex.Message}");
+        }
+    }
+
     internal static string DescribeColours(SortedDictionary<uint, string> props) =>
         string.Join(" ", props.Values.Where(v => v != null && v.StartsWith("RGBA")).Distinct()
             .Select(v => v.Replace("RGBA(", "").Replace(", 255)", "").Replace(", ", ",")));
@@ -135,6 +196,7 @@ internal static class LicensedKitIdPatch
             $"[Kit] time={teamID} uniforme={Plugin.KitSuffix(kitType)} licenciado={__result} recurso={resourceID}");
 
         var custom = Plugin.FindCustomKit(teamID, kitType);
+        Plugin.RecordTeam(teamID, Plugin.KitSuffix(kitType), custom);
         if (custom == null) return;
         resourceID = Plugin.ToResourceId(custom);
         __result = true;
@@ -321,6 +383,7 @@ internal static class Kit2DIdPatch
             Plugin.Log.LogInfo($"[Kit2D] assinatura={signature} tipo={__1} uniforme={__2} recurso={__result} cores={Plugin.DescribeColours(props)}");
 
         var custom = Plugin.FindCustomKit2D(signature);
+        Plugin.RecordSig(signature, __1, __2 ?? "", custom != null);
         if (custom != null) __result = Plugin.ToResourceId(custom);
     }
 }
