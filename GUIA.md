@@ -186,18 +186,27 @@ Salve as camisas como `kits3d/339_home.png`, `kits3d/339_away.png` e `kits3d/339
 ### Assinatura (2D)
 
 1. Abra a página do clube (Clube → Visão Geral), onde aparecem a camisa titular e a reserva.
-2. Procure no log as linhas `[Kit2D]`, por exemplo:
+2. Rode o script `assinaturas.py` (detecta o log automaticamente):
 
-```
-[Kit2D] assinatura=fde7df98 tipo=Kit2DFront uniforme=home recurso=kit2d_1 cores=...
-[Kit2D] assinatura=c720460b tipo=Kit2DFront uniforme=away recurso=kit2d_1 cores=...
-[Kit2D] assinatura=077f109c tipo=Kit2DOutfield uniforme= recurso=kit2d_outfield_same_1 cores=...
+```bash
+python scripts/assinaturas.py
 ```
 
-3. `Kit2DFront` + `home`/`away` são as camisas da página do clube; `Kit2DOutfield` é a camisa da tela de táticas; `Kit2DGK` é a do goleiro. As linhas aparecem na ordem em que a tela pede, então abra só a página do seu time para não confundir com outros clubes.
+Exemplo de saída:
+
+```
+Tipo                                Assinatura   Uniforme   Recurso
+────────────────────────────────────────────────────────────────────
+frente (tela do clube)              fde7df98     home       kit2d_1
+frente (tela do clube)              c720460b     away       kit2d_1
+linha (tática/escalação)            077f109c                kit2d_outfield_same_1
+goleiro (tática/escalação)          3a1b8f22                kit2d_outfield_same_1
+```
+
+3. `frente` + `home`/`away` são as camisas da página do clube; `linha` é a camisa da tela de táticas; `goleiro` é a do goleiro. Abra só a página do seu time antes de rodar o script para não misturar assinaturas de outros clubes.
 4. Salve a imagem como `kits2d/<assinatura>.png` — por exemplo `kits2d/fde7df98.png`. Não precisa reiniciar: saia e volte na tela.
 
-As assinaturas da sua base podem ser diferentes das do exemplo: use sempre as do seu log.
+As assinaturas da sua base podem ser diferentes das do exemplo: use sempre as do seu log. Se precisar exportar para uma planilha: `python scripts/assinaturas.py --csv > assinaturas.csv`.
 
 ---
 
@@ -214,18 +223,19 @@ A forma mais rápida: peça a arte a uma IA de imagem (ChatGPT ou similar) e mon
 
 ### Extrair um molde 3D do jogo
 
-As camisas licenciadas ficam em pacotes Unity em `<JOGO>/fm_Data/StreamingAssets/LicensedData/Core` e `/Extra` (`kits3d-<país>` para a partida, `kits2d-<país>` para as telas). Com UnityPy:
+As camisas licenciadas ficam em pacotes Unity em `<JOGO>/fm_Data/StreamingAssets/LicensedData/Core` e `/Extra`. Use o script `extrair_moldes.py` para extraí-las de uma vez:
 
-```python
-import UnityPy
-env = UnityPy.load(r"<JOGO>/fm_Data/StreamingAssets/LicensedData/Extra/kits3d-arg_assets_all.bundle")
-for obj in env.objects:
-    if obj.type.name == "Texture2D":
-        tex = obj.read()
-        tex.image.save(f"{tex.m_Name}.png")  # ex.: "river home.png", 1024x1024
+```bash
+# Todos os países (pode demorar)
+python scripts/extrair_moldes.py "<JOGO>" --saida moldes/
+
+# Só clubes brasileiros e argentinos
+python scripts/extrair_moldes.py "<JOGO>" --paises bra,arg --saida moldes/
 ```
 
-Use a camisa extraída só como referência de posição para desenhar a sua. Não redistribua as texturas licenciadas do jogo. Para a 2D, o pacote `kits2d-default` tem 56 modelos genéricos em que o canal vermelho é a cor principal, o verde a secundária e o azul gola e punhos — ótimos para recolorir.
+Isso cria uma pasta `moldes/` com todos os PNGs 1024×1024 (3D) e 256×256 (2D) das camisas licenciadas do jogo. Use-os só como referência visual de posição para desenhar a sua. **Não redistribua as texturas licenciadas do jogo.**
+
+Para a 2D, os arquivos `kit2d_generic_*.png` têm 56 modelos genéricos em que o canal vermelho é a cor principal, o verde a secundária e o azul gola e punhos.
 
 ### Prompts para IA de imagem
 
@@ -246,6 +256,33 @@ Short sleeves, round crew neck. [descreva o design: cor, faixa, gola, escudo/cru
 ```
 
 Depois recorte a sobra e redimensione para 256×256. A direção das faixas importa: "do ombro esquerdo do jogador ao quadril direito" é, para quem olha, do alto à direita para baixo à esquerda — escreva as duas formas no prompt.
+
+### Montar as camisas com `gerar_camisa.py`
+
+Com as artes geradas, o script monta os arquivos finais no formato certo para o plugin.
+
+**Camisa 2D** — pega a imagem de frente e centraliza no canvas 256×256:
+
+```bash
+python scripts/gerar_camisa.py 2d --frente arte_frente.png --saida kits/
+```
+
+**Camisa 3D** — encaixa cada parte no layout UV 1024×1024 do jogo:
+
+```bash
+python scripts/gerar_camisa.py 3d \
+  --frente  arte_frente.png \
+  --costas  arte_costas.png \
+  --manga   arte_manga.png  \
+  --calcao  arte_calcao.png \
+  --saida   kits/
+```
+
+`--costas`, `--manga` e `--calcao` são opcionais: se omitidos, essas regiões ficam transparentes no PNG e o jogo usa a cor genérica do time nessa área. O mínimo viável é só `--frente`.
+
+Depois renomeie os arquivos gerados:
+- 3D → `kits3d/<ID>_home.png` (use o ID do time do Passo 4)
+- 2D → `kits2d/<assinatura>.png` (use a assinatura do `assinaturas.py`)
 
 ---
 
@@ -282,9 +319,16 @@ O que este método **não** faz: mudar dinheiro, atributos ou qualquer dado da s
 
 ---
 
-## Código-fonte
+## Código-fonte e scripts
 
-O código completo está em [`Plugin.cs`](Plugin.cs) neste repositório. Licença MIT — use e modifique à vontade.
+| Arquivo | O que é |
+| --- | --- |
+| [`Plugin.cs`](Plugin.cs) | Código do plugin BepInEx/Harmony |
+| [`scripts/extrair_moldes.py`](scripts/extrair_moldes.py) | Extrai templates de camisas dos bundles do jogo |
+| [`scripts/gerar_camisa.py`](scripts/gerar_camisa.py) | Monta 2D e 3D a partir de arte gerada em IA |
+| [`scripts/assinaturas.py`](scripts/assinaturas.py) | Lê o log do BepInEx e lista as assinaturas 2D |
+
+Licença MIT — use e modifique à vontade.
 
 Os logs `[Kit]` e `[Kit2D]` podem ser desligados em `BepInEx/config/fm26.community.customkits.cfg` (`LogKitRequests = false`) depois que você tiver os IDs e assinaturas.
 
