@@ -15,7 +15,7 @@ using UnityEngine.UIElements;
 
 namespace FM26CustomKits;
 
-[BepInPlugin(Guid, "FM26 Custom Kits", "0.1.0")]
+[BepInPlugin(Guid, "FM26 Custom Kits", "0.3.0")]
 public class Plugin : BasePlugin
 {
     public const string Guid = "fm26.community.customkits";
@@ -51,7 +51,31 @@ public class Plugin : BasePlugin
 
         var namesFile = Path.Combine(root, "nomes.txt");
         if (!File.Exists(namesFile))
-            File.WriteAllText(namesFile, "# SIGLA=Nome exibido (uma por linha). Troca a sigla como palavra inteira, inclusive dentro de frases.\nVDG=Vasco da Gama\n");
+            File.WriteAllText(namesFile,
+                "# SIGLA=Nome exibido (uma por linha). Troca a sigla como palavra inteira, inclusive dentro de frases.\n" +
+                "# ATENÇÃO: não coloque BRA (sigla da nacionalidade Brasil — trocaria a nacionalidade de todo jogador).\n" +
+                "# Confira as siglas na tabela do seu save antes de ativar — podem variar entre bases.\n" +
+                "ATM=Atlético-MG\n" +
+                "ATP=Athletico-PR\n" +
+                "BAH=Bahia\n" +
+                "BOT=Botafogo\n" +
+                "CEA=Ceará\n" +
+                "CEC=Cruzeiro\n" +
+                "COR=Corinthians\n" +
+                "CTB=Coritiba\n" +
+                "CUI=Cuiabá\n" +
+                "FLA=Flamengo\n" +
+                "FLU=Fluminense\n" +
+                "FOR=Fortaleza\n" +
+                "GOI=Goiás\n" +
+                "GRE=Grêmio\n" +
+                "INT=Internacional\n" +
+                "MFC=Mirassol\n" +
+                "SAN=Santos\n" +
+                "SEP=Palmeiras\n" +
+                "SPO=São Paulo\n" +
+                "VDG=Vasco da Gama\n" +
+                "VIT=Vitória\n");
         foreach (var line in File.ReadAllLines(namesFile))
         {
             var idx = line.IndexOf('=');

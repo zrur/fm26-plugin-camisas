@@ -175,38 +175,41 @@ Em `<JOGO>/BepInEx/config/BepInEx.cfg`, mude `InstantFlushing = false` para `tru
 
 A camisa 3D é escolhida pelo **ID do time**; a 2D, por uma **assinatura** que o plugin calcula, porque nas telas o jogo não informa o ID — só o modelo e as cores da camisa genérica.
 
-### ID do time (3D)
+### ID do time (3D) e assinatura (2D)
 
-- Com o Real Names Fix aplicado, a página do clube mostra o ID ao lado do nome — o Vasco aparece como `Vasco da Gama (ID: 339)`.
-- Outra forma: no pack de escudos, o arquivo do clube é `club_<ID>.png`.
-- Ou abra uma partida do time e procure no `<JOGO>/BepInEx/LogOutput.log`: `[Kit] time=339 uniforme=home …`.
+O plugin gera automaticamente o arquivo `referencia.txt` na pasta `FM26CustomKits/` enquanto você joga. Não é preciso rodar nenhum script nem abrir o log.
 
-Salve as camisas como `kits3d/339_home.png`, `kits3d/339_away.png` e `kits3d/339_third.png`.
+**Como preencher:**
+- Entre em uma partida com o time → o ID aparece em `referencia.txt`
+- Abra a página do clube (Clube → Visão Geral) → a assinatura 2D aparece em `referencia.txt`
 
-### Assinatura (2D)
-
-1. Abra a página do clube (Clube → Visão Geral), onde aparecem a camisa titular e a reserva.
-2. Rode o script `assinaturas.py` (detecta o log automaticamente):
-
-```bash
-python scripts/assinaturas.py
-```
-
-Exemplo de saída:
+Exemplo do arquivo gerado:
 
 ```
-Tipo                                Assinatura   Uniforme   Recurso
-────────────────────────────────────────────────────────────────────
-frente (tela do clube)              fde7df98     home       kit2d_1
-frente (tela do clube)              c720460b     away       kit2d_1
-linha (tática/escalação)            077f109c                kit2d_outfield_same_1
-goleiro (tática/escalação)          3a1b8f22                kit2d_outfield_same_1
+## CAMISAS 3D
+# Coloque em:  kits3d/<ID>_home.png | _away.png | _third.png | _gk.png
+ID            tipo      status
+------------------------------------------------------
+339           home      sem camisa
+339           away      sem camisa
+
+## ASSINATURAS 2D
+# Coloque em:  kits2d/<assinatura>.png  (256x256, fundo transparente)
+assinatura  tipo                             uniforme  status
+------------------------------------------------------------------------
+fde7df98    frente (tela do clube)           home      sem camisa
+c720460b    frente (tela do clube)           away      sem camisa
+077f109c    linha  (tática/escalação)        home      sem camisa
+3a1b8f22    goleiro (tática)                 home      sem camisa
 ```
 
-3. `frente` + `home`/`away` são as camisas da página do clube; `linha` é a camisa da tela de táticas; `goleiro` é a do goleiro. Abra só a página do seu time antes de rodar o script para não misturar assinaturas de outros clubes.
-4. Salve a imagem como `kits2d/<assinatura>.png` — por exemplo `kits2d/fde7df98.png`. Não precisa reiniciar: saia e volte na tela.
+Quando você instala uma camisa, o status muda para `instalada (nome_arquivo.png)` automaticamente na próxima vez que o jogo pedir aquele kit.
 
-As assinaturas da sua base podem ser diferentes das do exemplo: use sempre as do seu log. Se precisar exportar para uma planilha: `python scripts/assinaturas.py --csv > assinaturas.csv`.
+> **Alternativa via script:** se preferir exportar as assinaturas do log manualmente, use `python scripts/assinaturas.py` (detecta o log automaticamente) ou `python scripts/assinaturas.py --csv > assinaturas.csv` para planilha.
+
+Salve as camisas como:
+- 3D → `kits3d/339_home.png`, `kits3d/339_away.png`, `kits3d/339_third.png`, `kits3d/339_gk.png`
+- 2D → `kits2d/fde7df98.png` (use a assinatura do `referencia.txt`)
 
 ---
 
@@ -282,7 +285,7 @@ python scripts/gerar_camisa.py 3d \
 
 Depois renomeie os arquivos gerados:
 - 3D → `kits3d/<ID>_home.png` (use o ID do time do Passo 4)
-- 2D → `kits2d/<assinatura>.png` (use a assinatura do `assinaturas.py`)
+- 2D → `kits2d/<assinatura>.png` (use a assinatura do `referencia.txt`)
 
 ---
 
@@ -326,11 +329,11 @@ O que este método **não** faz: mudar dinheiro, atributos ou qualquer dado da s
 | [`Plugin.cs`](Plugin.cs) | Código do plugin BepInEx/Harmony |
 | [`scripts/extrair_moldes.py`](scripts/extrair_moldes.py) | Extrai templates de camisas dos bundles do jogo |
 | [`scripts/gerar_camisa.py`](scripts/gerar_camisa.py) | Monta 2D e 3D a partir de arte gerada em IA |
-| [`scripts/assinaturas.py`](scripts/assinaturas.py) | Lê o log do BepInEx e lista as assinaturas 2D |
+| [`scripts/assinaturas.py`](scripts/assinaturas.py) | Exporta assinaturas 2D do log (alternativa ao `referencia.txt`) |
 
 Licença MIT — use e modifique à vontade.
 
-Os logs `[Kit]` e `[Kit2D]` podem ser desligados em `BepInEx/config/fm26.community.customkits.cfg` (`LogKitRequests = false`) depois que você tiver os IDs e assinaturas.
+O `referencia.txt` é gerado independente do `LogKitRequests`. Os logs detalhados `[Kit]` e `[Kit2D]` podem ser desligados em `BepInEx/config/fm26.community.customkits.cfg` (`LogKitRequests = false`) para reduzir o tamanho do log.
 
 ---
 
