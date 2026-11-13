@@ -8,7 +8,14 @@
 
 ## Por que existe
 
-A pasta `graphics/kits/` continua funcionando no FM26 — mas só para os times que o jogo já reconhece como licenciados. Para a maioria dos clubes brasileiros (sem licença), o FM26 ignora essa pasta e desenha a camisa pelas cores genéricas, nunca chegando a verificar se existe um PNG lá. Este plugin intercepta os métodos internos da engine para contornar exatamente isso, fazendo o jogo tratar qualquer time como se tivesse camisa licenciada.
+A pasta `graphics/kits/` só funciona para clubes licenciados no FM26. Para clubes brasileiros sem licença, o jogo bloqueia o carregamento de camisas personalizadas em arquivos internos da engine.
+
+Existem duas formas de contornar isso:
+
+| Abordagem | Como funciona | Funciona em save existente? | Modifica arquivos do jogo? |
+| --- | --- | --- | --- |
+| **Deletar arquivos de bloqueio** (ex: BrasilMundiUp) | Remove os arquivos que impedem o carregamento → `graphics/kits/` passa a funcionar | ❌ Save novo obrigatório | ✅ Sim |
+| **Este plugin** | Intercepta os métodos da engine em tempo de execução via Harmony | ✅ Funciona em saves existentes | ❌ Não |
 
 Diferente dos megapacks tradicionais (que chegam a vários GB para cobrir todos os clubes do mundo), aqui você coloca **só as camisas dos times que você quer** — cada PNG pesa menos de 1 MB. O plugin carrega apenas o que está na pasta; o resto continua usando as cores genéricas do jogo.
 
@@ -120,11 +127,13 @@ Veja [`scripts/prompts_ia.md`](scripts/prompts_ia.md) para prompts prontos de di
 
 ## Compatibilidade com packs existentes
 
-Packs distribuídos no formato `.fmf` (Brasil Mundiup, FMScout, etc.) são ZIPs renomeados. Para usar:
+Packs distribuídos no formato `.fmf` (FMScout, etc.) são ZIPs renomeados. Para usar:
 
 1. Renomeie o `.fmf` para `.zip` e extraia
 2. Localize os PNGs de camisa dentro do arquivo
 3. Renomeie para o formato `<ID>_home.png` e coloque em `kits3d/`
+
+> **BrasilMundiUp** usa uma abordagem diferente: deleta arquivos de bloqueio do jogo para que `graphics/kits/` funcione com clubes brasileiros. Os packs deles **não são diretamente compatíveis** com este plugin sem renomear os arquivos.
 
 ## Licença
 
