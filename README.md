@@ -71,10 +71,9 @@ BepInEx/LogOutput.log → [Kit] ResolveKitResourceID time=339 uniforme=home
 
 A camisa 2D usa uma **assinatura** baseada nas cores do time, não no ID. Para descobrir a assinatura:
 
-1. Ative `LogKitRequests = true`
-2. Abra qualquer tela com a camisa do time (elenco, perfil do clube)
-3. Procure no log: `[Kit2D] assinatura=a1b2c3d4 tipo=Kit2DOutfield`
-4. Salve o PNG como `kits2d/a1b2c3d4.png`
+1. Abra a tela do clube no jogo
+2. Rode `python scripts/assinaturas.py` — detecta o log automaticamente e lista todas as assinaturas
+3. Salve o PNG como `kits2d/<assinatura>.png`
 
 **Dimensões recomendadas:** 256×256 px com fundo transparente
 
@@ -87,6 +86,28 @@ Edite `nomes.txt` para substituir siglas por nomes completos em toda a UI:
 VDG=Vasco da Gama
 BOT=Botafogo de Futebol e Regatas
 ```
+
+## Scripts Python
+
+O repositório inclui scripts para extrair moldes do jogo, montar as camisas a partir de arte gerada em IA e descobrir assinaturas 2D.
+
+```bash
+pip install -r requirements.txt
+
+# Extrair templates de camisas dos bundles do jogo
+python scripts/extrair_moldes.py "<JOGO>" --saida moldes/
+
+# Montar camisa 2D (256×256) a partir de arte gerada em IA
+python scripts/gerar_camisa.py 2d --frente arte_frente.png --saida kits/
+
+# Montar camisa 3D (1024×1024) a partir de arte gerada em IA
+python scripts/gerar_camisa.py 3d --frente arte_frente.png --costas arte_costas.png --saida kits/
+
+# Listar assinaturas 2D dos times visitados no jogo
+python scripts/assinaturas.py
+```
+
+Veja [`scripts/prompts_ia.md`](scripts/prompts_ia.md) para prompts prontos de direção artística para cada estilo de camisa.
 
 ## Compilando do fonte
 

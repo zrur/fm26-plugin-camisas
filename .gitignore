@@ -2,3 +2,16 @@ bin/
 obj/
 *.user
 .vs/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Pastas locais de trabalho (não pertencem ao repo)
+moldes/
+kits/
+kits3d/
+kits2d/
+estampas/
+vasco_2026/
